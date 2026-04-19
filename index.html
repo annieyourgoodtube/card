@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
         
-        /* 背景動畫效果 */
         body::before {
             content: '';
             position: fixed;
@@ -63,7 +62,6 @@
             padding: 40px 20px;
         }
         
-        /* 標題區 */
         .header {
             text-align: center;
             margin-bottom: 60px;
@@ -71,14 +69,8 @@
         }
         
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .header h1 {
@@ -97,7 +89,6 @@
             font-size: 1.1rem;
         }
         
-        /* 上傳區域 */
         .upload-section {
             background: var(--bg-card);
             border-radius: 24px;
@@ -109,14 +100,8 @@
         }
         
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .upload-zone {
@@ -167,7 +152,6 @@
             display: none;
         }
         
-        /* 預覽區域 */
         .preview-section {
             display: none;
             animation: fadeInUp 0.8s ease-out;
@@ -256,7 +240,6 @@
             font-family: 'JetBrains Mono', monospace;
         }
         
-        /* 按鈕區 */
         .action-buttons {
             display: flex;
             gap: 16px;
@@ -286,16 +269,6 @@
             box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
         }
         
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-        
         .btn-secondary {
             background: var(--bg-hover);
             color: var(--text-primary);
@@ -306,7 +279,6 @@
             transform: translateY(-3px);
         }
         
-        /* 狀態訊息 */
         .status-message {
             display: none;
             padding: 20px;
@@ -317,14 +289,8 @@
         }
         
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
         .status-message.success {
@@ -339,7 +305,6 @@
             color: #fca5a5;
         }
         
-        /* 載入動畫 */
         .loading {
             display: none;
             text-align: center;
@@ -361,7 +326,6 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* 統計卡片 */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -406,6 +370,7 @@
         .payment-reminder-section {
             margin-top: 60px;
             animation: fadeInUp 0.8s ease-out 0.6s backwards;
+            display: none;
         }
         
         .reminder-header {
@@ -643,74 +608,34 @@
             <div class="stat-card">
                 <div class="stat-icon">📊</div>
                 <div class="stat-label">本月總應繳</div>
-                <div class="stat-value" id="totalAmount">$264,235</div>
+                <div class="stat-value" id="totalAmount">$0</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">⚠️</div>
                 <div class="stat-label">最低應繳</div>
-                <div class="stat-value" id="minAmount">$82,966</div>
+                <div class="stat-value" id="minAmount">$0</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">💰</div>
                 <div class="stat-label">可延後金額</div>
-                <div class="stat-value" id="deferredAmount">$181,269</div>
+                <div class="stat-value" id="deferredAmount">$0</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📁</div>
                 <div class="stat-label">已上傳帳單</div>
-                <div class="stat-value" id="fileCount">3</div>
+                <div class="stat-value" id="fileCount">0</div>
             </div>
         </div>
         
-        <!-- 繳款日提醒區 -->
-        <div class="payment-reminder-section">
+        <!-- 繳款提醒區 (動態生成) -->
+        <div class="payment-reminder-section" id="paymentReminderSection">
             <div class="reminder-header">
                 <h2>🔔 繳款日提醒</h2>
                 <div class="today-date" id="todayDate"></div>
             </div>
             
             <div class="reminder-grid" id="reminderGrid">
-                <div class="reminder-card urgent">
-                    <div class="reminder-status">
-                        <span class="status-badge danger">🔴 緊急</span>
-                        <span class="days-left">剩 <strong id="days1">0</strong> 天</span>
-                    </div>
-                    <div class="reminder-bank">匯豐銀行 - 匯豐匯鑽卡</div>
-                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$122,064</span></div>
-                    <div class="reminder-date">
-                        <span class="date-icon">📅</span>
-                        繳款期限：<strong>2026/04/06</strong>
-                    </div>
-                    <div class="reminder-min">最低：$20,262</div>
-                </div>
-                
-                <div class="reminder-card warning">
-                    <div class="reminder-status">
-                        <span class="status-badge warning">🟡 注意</span>
-                        <span class="days-left">剩 <strong id="days2">0</strong> 天</span>
-                    </div>
-                    <div class="reminder-bank">玉山銀行 - E.SUN BANK</div>
-                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$115,925</span></div>
-                    <div class="reminder-date">
-                        <span class="date-icon">📅</span>
-                        繳款期限：<strong>2026/04/13</strong>
-                    </div>
-                    <div class="reminder-min">最低：$48,156</div>
-                </div>
-                
-                <div class="reminder-card normal">
-                    <div class="reminder-status">
-                        <span class="status-badge normal">🟢 正常</span>
-                        <span class="days-left">剩 <strong id="days3">0</strong> 天</span>
-                    </div>
-                    <div class="reminder-bank">樂天信用卡 - Rakuten</div>
-                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$26,246</span></div>
-                    <div class="reminder-date">
-                        <span class="date-icon">📅</span>
-                        繳款期限：<strong>2026/05/06</strong>
-                    </div>
-                    <div class="reminder-min">最低：$14,548</div>
-                </div>
+                <!-- 將根據上傳的帳單動態生成 -->
             </div>
             
             <div class="reminder-footer">
@@ -723,6 +648,7 @@
     
     <script>
         let uploadedFiles = [];
+        let billsData = []; // 儲存已分析的帳單資料
         
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
@@ -730,11 +656,11 @@
         const previewGrid = document.getElementById('previewGrid');
         const loading = document.getElementById('loading');
         const statusMessage = document.getElementById('statusMessage');
+        const paymentReminderSection = document.getElementById('paymentReminderSection');
         
         // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             updateTodayDate();
-            calculateDaysLeft();
         });
         
         // 更新今天日期
@@ -742,42 +668,6 @@
             const today = new Date();
             const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
             document.getElementById('todayDate').textContent = today.toLocaleDateString('zh-TW', options);
-        }
-        
-        // 計算剩餘天數
-        function calculateDaysLeft() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const dueDates = [
-                { id: 'days1', date: new Date('2026-04-06') },
-                { id: 'days2', date: new Date('2026-04-13') },
-                { id: 'days3', date: new Date('2026-05-06') }
-            ];
-            
-            dueDates.forEach(item => {
-                const timeDiff = item.date - today;
-                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-                const element = document.getElementById(item.id);
-                
-                if (element) {
-                    element.textContent = daysLeft;
-                    
-                    // 根據剩餘天數改變顏色
-                    const parent = element.parentElement;
-                    if (daysLeft < 0) {
-                        parent.innerHTML = `已逾期 <strong style="color: #ef4444;">${Math.abs(daysLeft)}</strong> 天`;
-                    } else if (daysLeft === 0) {
-                        parent.innerHTML = `<strong style="color: #ef4444;">今天到期！</strong>`;
-                    } else if (daysLeft <= 3) {
-                        element.style.color = '#fca5a5';
-                    } else if (daysLeft <= 7) {
-                        element.style.color = '#fcd34d';
-                    } else {
-                        element.style.color = '#6ee7b7';
-                    }
-                }
-            });
         }
         
         // 點擊上傳
@@ -861,6 +751,8 @@
             
             if (uploadedFiles.length === 0) {
                 previewSection.style.display = 'none';
+                resetStats();
+                paymentReminderSection.style.display = 'none';
             }
         }
         
@@ -871,10 +763,20 @@
         
         function clearAll() {
             uploadedFiles = [];
+            billsData = [];
             previewGrid.innerHTML = '';
             previewSection.style.display = 'none';
             fileInput.value = '';
-            updateFileCount();
+            resetStats();
+            paymentReminderSection.style.display = 'none';
+            document.getElementById('reminderGrid').innerHTML = '';
+        }
+        
+        function resetStats() {
+            document.getElementById('totalAmount').textContent = '$0';
+            document.getElementById('minAmount').textContent = '$0';
+            document.getElementById('deferredAmount').textContent = '$0';
+            document.getElementById('fileCount').textContent = '0';
         }
         
         function updateFileCount() {
@@ -890,13 +792,45 @@
             loading.style.display = 'block';
             previewSection.style.display = 'none';
             
-            // 模擬分析過程
+            // 模擬分析過程 - 實際使用時這裡會呼叫 Claude API 來辨識帳單內容
             await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // 模擬分析結果（實際使用時會從 API 獲取真實數據）
+            // TODO: 這裡之後會替換成真實的 OCR + Claude API 分析
+            billsData = [
+                {
+                    bank: '玉山銀行',
+                    cardType: 'E.SUN BANK',
+                    totalAmount: 115925,
+                    minAmount: 48156,
+                    dueDate: '2026-04-13'
+                },
+                {
+                    bank: '樂天信用卡',
+                    cardType: 'Rakuten',
+                    totalAmount: 26246,
+                    minAmount: 14548,
+                    dueDate: '2026-05-06'
+                },
+                {
+                    bank: '匯豐銀行',
+                    cardType: '匯豐匯鑽卡',
+                    totalAmount: 122064,
+                    minAmount: 20262,
+                    dueDate: '2026-04-06'
+                }
+            ];
             
             loading.style.display = 'none';
             previewSection.style.display = 'block';
             
-            showStatus(`✅ 成功分析 ${uploadedFiles.length} 筆帳單！資料已更新至 Excel 系統。`, 'success');
+            // 更新統計數據
+            updateStats();
+            
+            // 生成繳款提醒
+            generatePaymentReminders();
+            
+            showStatus(`✅ 成功分析 ${uploadedFiles.length} 筆帳單！資料已準備更新至 Excel。`, 'success');
             
             // 更新預覽卡片狀態
             const cards = previewGrid.querySelectorAll('.preview-card');
@@ -907,6 +841,85 @@
                     statusSpan.textContent = '✓ 已分析';
                 }
             });
+        }
+        
+        function updateStats() {
+            const total = billsData.reduce((sum, bill) => sum + bill.totalAmount, 0);
+            const min = billsData.reduce((sum, bill) => sum + bill.minAmount, 0);
+            const deferred = total - min;
+            
+            document.getElementById('totalAmount').textContent = `$${total.toLocaleString()}`;
+            document.getElementById('minAmount').textContent = `$${min.toLocaleString()}`;
+            document.getElementById('deferredAmount').textContent = `$${deferred.toLocaleString()}`;
+        }
+        
+        function generatePaymentReminders() {
+            const reminderGrid = document.getElementById('reminderGrid');
+            reminderGrid.innerHTML = '';
+            
+            // 按到期日排序
+            const sortedBills = [...billsData].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+            
+            sortedBills.forEach((bill, index) => {
+                const daysLeft = calculateDaysLeft(bill.dueDate);
+                const urgencyClass = getUrgencyClass(daysLeft);
+                const badge = getUrgencyBadge(daysLeft);
+                
+                const card = document.createElement('div');
+                card.className = `reminder-card ${urgencyClass}`;
+                card.innerHTML = `
+                    <div class="reminder-status">
+                        <span class="status-badge ${urgencyClass === 'urgent' ? 'danger' : urgencyClass === 'warning' ? 'warning' : 'normal'}">${badge}</span>
+                        <span class="days-left">${getDaysLeftText(daysLeft)}</span>
+                    </div>
+                    <div class="reminder-bank">${bill.bank} - ${bill.cardType}</div>
+                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$${bill.totalAmount.toLocaleString()}</span></div>
+                    <div class="reminder-date">
+                        <span class="date-icon">📅</span>
+                        繳款期限：<strong>${formatDate(bill.dueDate)}</strong>
+                    </div>
+                    <div class="reminder-min">最低：$${bill.minAmount.toLocaleString()}</div>
+                `;
+                reminderGrid.appendChild(card);
+            });
+            
+            paymentReminderSection.style.display = 'block';
+        }
+        
+        function calculateDaysLeft(dueDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const due = new Date(dueDate);
+            const timeDiff = due - today;
+            return Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        }
+        
+        function getUrgencyClass(daysLeft) {
+            if (daysLeft <= 3) return 'urgent';
+            if (daysLeft <= 7) return 'warning';
+            return 'normal';
+        }
+        
+        function getUrgencyBadge(daysLeft) {
+            if (daysLeft <= 3) return '🔴 緊急';
+            if (daysLeft <= 7) return '🟡 注意';
+            return '🟢 正常';
+        }
+        
+        function getDaysLeftText(daysLeft) {
+            if (daysLeft < 0) {
+                return `已逾期 <strong style="color: #ef4444;">${Math.abs(daysLeft)}</strong> 天`;
+            } else if (daysLeft === 0) {
+                return `<strong style="color: #ef4444;">今天到期！</strong>`;
+            } else {
+                const color = daysLeft <= 3 ? '#fca5a5' : daysLeft <= 7 ? '#fcd34d' : '#6ee7b7';
+                return `剩 <strong style="color: ${color};">${daysLeft}</strong> 天`;
+            }
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
         }
         
         function showStatus(message, type) {
