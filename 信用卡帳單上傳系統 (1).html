@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信用卡帳單上傳系統</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --glow: rgba(37, 99, 235, 0.3);
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 背景動畫效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* 標題區 */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 40px var(--glow);
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* 上傳區域 */
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 2px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .upload-zone {
+            border: 3px dashed var(--border);
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(37, 99, 235, 0.05);
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-zone.dragover {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .upload-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        /* 預覽區域 */
+        .preview-section {
+            display: none;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .preview-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .preview-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .remove-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+        
+        .preview-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+        
+        .extracted-data {
+            background: var(--bg-main);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        
+        .data-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .data-value {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* 按鈕區 */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans TC', sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: #475569;
+            transform: translateY(-3px);
+        }
+        
+        /* 狀態訊息 */
+        .status-message {
+            display: none;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 24px;
+            font-weight: 500;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid var(--success);
+            color: #6ee7b7;
+        }
+        
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--danger);
+            color: #fca5a5;
+        }
+        
+        /* 載入動畫 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 統計卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+        }
+        
+        /* 繳款提醒區 */
+        .payment-reminder-section {
+            margin-top: 60px;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+        
+        .reminder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        .reminder-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .today-date {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .reminder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .reminder-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 28px;
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .reminder-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .reminder-card.urgent::before {
+            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .reminder-card.warning::before {
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .reminder-card.normal::before {
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .reminder-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .reminder-card.urgent:hover {
+            border-color: #ef4444;
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.3);
+        }
+        
+        .reminder-card.warning:hover {
+            border-color: #f59e0b;
+            box-shadow: 0 15px 40px rgba(245, 158, 11, 0.3);
+        }
+        
+        .reminder-card.normal:hover {
+            border-color: #10b981;
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.3);
+        }
+        
+        .reminder-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
+        
+        .status-badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border: 1px solid #f59e0b;
+        }
+        
+        .status-badge.normal {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid #10b981;
+        }
+        
+        .days-left {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .days-left strong {
+            font-size: 1.4rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+        
+        .reminder-bank {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .reminder-amount {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .amount-highlight {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+        }
+        
+        .reminder-date {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+            padding: 12px;
+            background: var(--bg-main);
+            border-radius: 8px;
+        }
+        
+        .date-icon {
+            font-size: 1.2rem;
+        }
+        
+        .reminder-date strong {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .reminder-min {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+        }
+        
+        .reminder-footer {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .footer-note {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .footer-note strong {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 信用卡帳單上傳系統</h1>
+            <p>輕鬆管理您的每月信用卡帳單</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">點擊或拖曳檔案至此處上傳</div>
+                <div class="upload-hint">支援 PNG、JPG、PDF 格式</div>
+            </div>
+            <input type="file" id="fileInput" multiple accept="image/*,.pdf">
+        </div>
+        
+        <div class="preview-section" id="previewSection">
+            <h2 style="margin-bottom: 24px; font-size: 1.8rem;">📋 已上傳的帳單</h2>
+            <div class="preview-grid" id="previewGrid"></div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="analyzeFiles()">🔍 開始分析帳單</button>
+                <button class="btn btn-secondary" onclick="clearAll()">🗑️ 清除全部</button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: var(--text-secondary);">正在分析帳單資料...</p>
+        </div>
+        
+        <div class="status-message" id="statusMessage"></div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-label">本月總應繳</div>
+                <div class="stat-value" id="totalAmount">$264,235</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-label">最低應繳</div>
+                <div class="stat-value" id="minAmount">$82,966</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-label">可延後金額</div>
+                <div class="stat-value" id="deferredAmount">$181,269</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-label">已上傳帳單</div>
+                <div class="stat-value" id="fileCount">3</div>
+            </div>
+        </div>
+        
+        <!-- 繳款日提醒區 -->
+        <div class="payment-reminder-section">
+            <div class="reminder-header">
+                <h2>🔔 繳款日提醒</h2>
+                <div class="today-date" id="todayDate"></div>
+            </div>
+            
+            <div class="reminder-grid" id="reminderGrid">
+                <div class="reminder-card urgent">
+                    <div class="reminder-status">
+                        <span class="status-badge danger">🔴 緊急</span>
+                        <span class="days-left">剩 <strong id="days1">0</strong> 天</span>
+                    </div>
+                    <div class="reminder-bank">匯豐銀行 - 匯豐匯鑽卡</div>
+                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$122,064</span></div>
+                    <div class="reminder-date">
+                        <span class="date-icon">📅</span>
+                        繳款期限：<strong>2026/04/06</strong>
+                    </div>
+                    <div class="reminder-min">最低：$20,262</div>
+                </div>
+                
+                <div class="reminder-card warning">
+                    <div class="reminder-status">
+                        <span class="status-badge warning">🟡 注意</span>
+                        <span class="days-left">剩 <strong id="days2">0</strong> 天</span>
+                    </div>
+                    <div class="reminder-bank">玉山銀行 - E.SUN BANK</div>
+                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$115,925</span></div>
+                    <div class="reminder-date">
+                        <span class="date-icon">📅</span>
+                        繳款期限：<strong>2026/04/13</strong>
+                    </div>
+                    <div class="reminder-min">最低：$48,156</div>
+                </div>
+                
+                <div class="reminder-card normal">
+                    <div class="reminder-status">
+                        <span class="status-badge normal">🟢 正常</span>
+                        <span class="days-left">剩 <strong id="days3">0</strong> 天</span>
+                    </div>
+                    <div class="reminder-bank">樂天信用卡 - Rakuten</div>
+                    <div class="reminder-amount">應繳金額：<span class="amount-highlight">$26,246</span></div>
+                    <div class="reminder-date">
+                        <span class="date-icon">📅</span>
+                        繳款期限：<strong>2026/05/06</strong>
+                    </div>
+                    <div class="reminder-min">最低：$14,548</div>
+                </div>
+            </div>
+            
+            <div class="reminder-footer">
+                <div class="footer-note">
+                    💡 <strong>提示：</strong>建議在繳款截止日前 3 天完成繳款，避免延遲入帳
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let uploadedFiles = [];
+        
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewGrid = document.getElementById('previewGrid');
+        const loading = document.getElementById('loading');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            updateTodayDate();
+            calculateDaysLeft();
+        });
+        
+        // 更新今天日期
+        function updateTodayDate() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('todayDate').textContent = today.toLocaleDateString('zh-TW', options);
+        }
+        
+        // 計算剩餘天數
+        function calculateDaysLeft() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const dueDates = [
+                { id: 'days1', date: new Date('2026-04-06') },
+                { id: 'days2', date: new Date('2026-04-13') },
+                { id: 'days3', date: new Date('2026-05-06') }
+            ];
+            
+            dueDates.forEach(item => {
+                const timeDiff = item.date - today;
+                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                const element = document.getElementById(item.id);
+                
+                if (element) {
+                    element.textContent = daysLeft;
+                    
+                    // 根據剩餘天數改變顏色
+                    const parent = element.parentElement;
+                    if (daysLeft < 0) {
+                        parent.innerHTML = `已逾期 <strong style="color: #ef4444;">${Math.abs(daysLeft)}</strong> 天`;
+                    } else if (daysLeft === 0) {
+                        parent.innerHTML = `<strong style="color: #ef4444;">今天到期！</strong>`;
+                    } else if (daysLeft <= 3) {
+                        element.style.color = '#fca5a5';
+                    } else if (daysLeft <= 7) {
+                        element.style.color = '#fcd34d';
+                    } else {
+                        element.style.color = '#6ee7b7';
+                    }
+                }
+            });
+        }
+        
+        // 點擊上傳
+        uploadZone.addEventListener('click', () => fileInput.click());
+        
+        // 檔案選擇
+        fileInput.addEventListener('change', handleFiles);
+        
+        // 拖曳上傳
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles({ target: { files: e.dataTransfer.files } });
+        });
+        
+        function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+                    uploadedFiles.push(file);
+                    addPreview(file);
+                }
+            });
+            
+            if (uploadedFiles.length > 0) {
+                previewSection.style.display = 'block';
+                updateFileCount();
+            }
+        }
+        
+        function addPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const card = document.createElement('div');
+                card.className = 'preview-card';
+                card.innerHTML = `
+                    <div class="preview-header">
+                        <div class="file-name">${file.name}</div>
+                        <button class="remove-btn" onclick="removeFile('${file.name}')">✕</button>
+                    </div>
+                    ${file.type.startsWith('image/') ? 
+                        `<img src="${e.target.result}" class="preview-image" alt="預覽">` : 
+                        `<div style="padding: 40px; text-align: center; background: var(--bg-main); border-radius: 12px;">
+                            <div style="font-size: 3rem;">📄</div>
+                            <div style="margin-top: 10px; color: var(--text-secondary);">PDF 文件</div>
+                        </div>`
+                    }
+                    <div class="extracted-data">
+                        <div class="data-row">
+                            <span class="data-label">檔案大小</span>
+                            <span class="data-value">${(file.size / 1024).toFixed(2)} KB</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">上傳時間</span>
+                            <span class="data-value">${new Date().toLocaleTimeString('zh-TW')}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">狀態</span>
+                            <span class="data-value" style="color: var(--warning);">⏳ 待分析</span>
+                        </div>
+                    </div>
+                `;
+                previewGrid.appendChild(card);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeFile(fileName) {
+            uploadedFiles = uploadedFiles.filter(f => f.name !== fileName);
+            updatePreview();
+            updateFileCount();
+            
+            if (uploadedFiles.length === 0) {
+                previewSection.style.display = 'none';
+            }
+        }
+        
+        function updatePreview() {
+            previewGrid.innerHTML = '';
+            uploadedFiles.forEach(file => addPreview(file));
+        }
+        
+        function clearAll() {
+            uploadedFiles = [];
+            previewGrid.innerHTML = '';
+            previewSection.style.display = 'none';
+            fileInput.value = '';
+            updateFileCount();
+        }
+        
+        function updateFileCount() {
+            document.getElementById('fileCount').textContent = uploadedFiles.length;
+        }
+        
+        async function analyzeFiles() {
+            if (uploadedFiles.length === 0) {
+                showStatus('請先上傳帳單檔案！', 'error');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            previewSection.style.display = 'none';
+            
+            // 模擬分析過程
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            loading.style.display = 'none';
+            previewSection.style.display = 'block';
+            
+            showStatus(`✅ 成功分析 ${uploadedFiles.length} 筆帳單！資料已更新至 Excel 系統。`, 'success');
+            
+            // 更新預覽卡片狀態
+            const cards = previewGrid.querySelectorAll('.preview-card');
+            cards.forEach(card => {
+                const statusSpan = card.querySelector('.data-value[style*="color"]');
+                if (statusSpan) {
+                    statusSpan.style.color = 'var(--success)';
+                    statusSpan.textContent = '✓ 已分析';
+                }
+            });
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            statusMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
