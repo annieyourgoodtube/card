@@ -569,6 +569,172 @@
         .footer-note strong {
             color: var(--text-primary);
         }
+        
+        /* 繳款歷史記錄區 */
+        .payment-history-section {
+            margin-top: 60px;
+            animation: fadeInUp 0.8s ease-out 0.8s backwards;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        .history-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .history-table-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid var(--border);
+            overflow-x: auto;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        
+        .history-table thead tr {
+            background: var(--bg-main);
+        }
+        
+        .history-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .history-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        .history-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .history-table tbody tr:hover {
+            background: var(--bg-hover);
+        }
+        
+        .status-paid {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid #10b981;
+        }
+        
+        .status-partial {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border: 1px solid #f59e0b;
+        }
+        
+        /* 繳款彈窗 */
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid var(--border);
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Noto Sans TC', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+        }
+        
+        .modal-buttons .btn {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -593,6 +759,7 @@
             
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="analyzeFiles()">🔍 開始分析帳單</button>
+                <button class="btn btn-success" onclick="recordPayment()" style="background: linear-gradient(135deg, var(--success) 0%, #059669 100%);">💰 記錄繳款</button>
                 <button class="btn btn-secondary" onclick="clearAll()">🗑️ 清除全部</button>
             </div>
         </div>
@@ -644,11 +811,85 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 繳款歷史記錄區 -->
+        <div class="payment-history-section" id="paymentHistorySection" style="display: none;">
+            <div class="history-header">
+                <h2>📝 繳款歷史記錄</h2>
+                <button class="btn btn-secondary" style="padding: 10px 20px; font-size: 0.9rem;" onclick="exportHistory()">📥 匯出記錄</button>
+            </div>
+            
+            <div class="history-table-container">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>繳款日期</th>
+                            <th>銀行</th>
+                            <th>卡別</th>
+                            <th>應繳金額</th>
+                            <th>實繳金額</th>
+                            <th>繳款方式</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- 動態生成繳款記錄 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 繳款記錄彈窗 -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">💰 記錄繳款</div>
+            
+            <div class="form-group">
+                <label class="form-label">選擇信用卡</label>
+                <select class="form-select" id="cardSelect">
+                    <option value="">請選擇信用卡</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">應繳金額</label>
+                <input type="text" class="form-input" id="totalAmountInput" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">實際繳款金額</label>
+                <input type="number" class="form-input" id="paidAmountInput" placeholder="請輸入繳款金額">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">繳款方式</label>
+                <select class="form-select" id="paymentMethod">
+                    <option value="ATM轉帳">ATM轉帳</option>
+                    <option value="網路銀行">網路銀行</option>
+                    <option value="超商繳費">超商繳費</option>
+                    <option value="自動扣款">自動扣款</option>
+                    <option value="銀行臨櫃">銀行臨櫃</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">繳款日期</label>
+                <input type="date" class="form-input" id="paymentDate">
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="confirmPayment()">✓ 確認記錄</button>
+                <button class="btn btn-secondary" onclick="closePaymentModal()">✕ 取消</button>
+            </div>
+        </div>
     </div>
     
     <script>
         let uploadedFiles = [];
         let billsData = []; // 儲存已分析的帳單資料
+        let paymentHistory = []; // 儲存繳款歷史
         
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
@@ -657,11 +898,171 @@
         const loading = document.getElementById('loading');
         const statusMessage = document.getElementById('statusMessage');
         const paymentReminderSection = document.getElementById('paymentReminderSection');
+        const paymentHistorySection = document.getElementById('paymentHistorySection');
+        const paymentModal = document.getElementById('paymentModal');
         
         // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             updateTodayDate();
+            loadPaymentHistory();
+            setDefaultPaymentDate();
         });
+        
+        // 設定預設繳款日期為今天
+        function setDefaultPaymentDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentDate').value = today;
+        }
+        
+        // 載入繳款歷史（從 localStorage）
+        function loadPaymentHistory() {
+            const saved = localStorage.getItem('creditCardPaymentHistory');
+            if (saved) {
+                paymentHistory = JSON.parse(saved);
+                if (paymentHistory.length > 0) {
+                    displayPaymentHistory();
+                    paymentHistorySection.style.display = 'block';
+                }
+            }
+        }
+        
+        // 儲存繳款歷史
+        function savePaymentHistory() {
+            localStorage.setItem('creditCardPaymentHistory', JSON.stringify(paymentHistory));
+        }
+        
+        // 開啟繳款記錄彈窗
+        function recordPayment() {
+            if (billsData.length === 0) {
+                showStatus('請先上傳並分析帳單！', 'error');
+                return;
+            }
+            
+            // 填充信用卡選項
+            const cardSelect = document.getElementById('cardSelect');
+            cardSelect.innerHTML = '<option value="">請選擇信用卡</option>';
+            
+            billsData.forEach((bill, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${bill.bank} - ${bill.cardType}`;
+                cardSelect.appendChild(option);
+            });
+            
+            // 監聽選擇變化
+            cardSelect.onchange = function() {
+                if (this.value !== '') {
+                    const bill = billsData[this.value];
+                    document.getElementById('totalAmountInput').value = `$${bill.totalAmount.toLocaleString()}`;
+                    document.getElementById('paidAmountInput').value = bill.totalAmount;
+                } else {
+                    document.getElementById('totalAmountInput').value = '';
+                    document.getElementById('paidAmountInput').value = '';
+                }
+            };
+            
+            paymentModal.style.display = 'flex';
+        }
+        
+        // 關閉繳款彈窗
+        function closePaymentModal() {
+            paymentModal.style.display = 'none';
+            document.getElementById('cardSelect').value = '';
+            document.getElementById('totalAmountInput').value = '';
+            document.getElementById('paidAmountInput').value = '';
+            setDefaultPaymentDate();
+        }
+        
+        // 確認繳款記錄
+        function confirmPayment() {
+            const cardIndex = document.getElementById('cardSelect').value;
+            const paidAmount = parseFloat(document.getElementById('paidAmountInput').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentDate = document.getElementById('paymentDate').value;
+            
+            if (!cardIndex || !paidAmount || !paymentDate) {
+                showStatus('請填寫完整資訊！', 'error');
+                return;
+            }
+            
+            const bill = billsData[cardIndex];
+            
+            // 建立繳款記錄
+            const record = {
+                date: paymentDate,
+                bank: bill.bank,
+                cardType: bill.cardType,
+                totalAmount: bill.totalAmount,
+                paidAmount: paidAmount,
+                method: paymentMethod,
+                status: paidAmount >= bill.totalAmount ? '全額繳清' : '部分繳款',
+                timestamp: new Date().toISOString()
+            };
+            
+            paymentHistory.unshift(record); // 新記錄放最前面
+            savePaymentHistory();
+            displayPaymentHistory();
+            
+            paymentHistorySection.style.display = 'block';
+            closePaymentModal();
+            
+            showStatus(`✅ 已記錄 ${bill.bank} 的繳款：$${paidAmount.toLocaleString()}`, 'success');
+            
+            // 從待繳清單移除已繳款的卡片
+            if (paidAmount >= bill.totalAmount) {
+                billsData.splice(cardIndex, 1);
+                updateStats();
+                generatePaymentReminders();
+                
+                if (billsData.length === 0) {
+                    paymentReminderSection.style.display = 'none';
+                    showStatus('🎉 所有帳單已繳清！', 'success');
+                }
+            }
+        }
+        
+        // 顯示繳款歷史
+        function displayPaymentHistory() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            paymentHistory.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(record.date)}</td>
+                    <td>${record.bank}</td>
+                    <td>${record.cardType}</td>
+                    <td style="font-family: 'JetBrains Mono', monospace;">$${record.totalAmount.toLocaleString()}</td>
+                    <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--success);">$${record.paidAmount.toLocaleString()}</td>
+                    <td>${record.method}</td>
+                    <td><span class="${record.status === '全額繳清' ? 'status-paid' : 'status-partial'}">${record.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 匯出繳款記錄
+        function exportHistory() {
+            if (paymentHistory.length === 0) {
+                showStatus('目前沒有繳款記錄可以匯出', 'error');
+                return;
+            }
+            
+            // 準備 CSV 資料
+            let csv = '繳款日期,銀行,卡別,應繳金額,實繳金額,繳款方式,狀態\n';
+            paymentHistory.forEach(record => {
+                csv += `${record.date},${record.bank},${record.cardType},${record.totalAmount},${record.paidAmount},${record.method},${record.status}\n`;
+            });
+            
+            // 下載 CSV
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `信用卡繳款記錄_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            showStatus('✅ 繳款記錄已匯出', 'success');
+        }
         
         // 更新今天日期
         function updateTodayDate() {
